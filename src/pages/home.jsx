@@ -3,6 +3,7 @@ import ProductOverviewPage from "./client/productOverview";
 import ProductPage from "./client/productPage";
 import { Routes, Route } from "react-router-dom";
 import CartPage from "./client/cart";
+import CheckoutPage from "./client/checkOut";
 
 export default function HomePage() {
   return (

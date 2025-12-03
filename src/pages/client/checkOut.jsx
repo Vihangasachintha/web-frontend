@@ -68,7 +68,7 @@ export default function CheckoutPage(){
             <div className="z-50 md:hidden  flex w-full h-[100px] shadow-2xl    flex-col justify-center items-center">
                 <p className="text-2xl text-secondary font-bold">Total: 
                     <span className="text-accent font-bold mx-2">
-                        {getTotal().toFixed(2)}
+                        {}
                     </span>
                 </p>
                 <Link to="/checkout" state={
