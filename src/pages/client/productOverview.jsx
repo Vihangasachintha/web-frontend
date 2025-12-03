@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ImageSlider from "../../components/imageSlider.jsx";
 import Loading from "../../components/loading.jsx";
 import "./style.css";
@@ -9,11 +9,13 @@ import { addToCart } from "../../utils/cart.jsx";
 import { getCart } from "../../utils/cart.jsx";
 import { removeFromCart } from "../../utils/cart.jsx";
 
+
 export default function ProductOverviewPage() {
   const params = useParams();
   const productId = params.id;
   const [status, setStatus] = useState("loading");
   const [product, setProduct] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!productId) return;
@@ -81,7 +83,20 @@ export default function ProductOverviewPage() {
                 }}>
                   Add to Cart
                 </button>
-                <button className="w-[200px] h-[50px] bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4">
+                <button
+                  className="w-[200px] h-[50px] bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4"
+                  onClick={() => {
+                    const item = {
+                      productId: product.productId,
+                      name: product.name,
+                      price: product.price,
+                      qty: 1,
+                      labelledPrice: product.labelPrice,
+                      image: Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : "",
+                    };
+                    navigate("/checkout", { state: { cart: [item] } });
+                  }}
+                >
                   Buy Now
                 </button>
               </div>

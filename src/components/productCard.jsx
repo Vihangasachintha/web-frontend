@@ -1,54 +1,87 @@
 import { Link } from "react-router-dom";
 
+function formatPrice(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num.toLocaleString() : "0";
+}
+
 export default function ProductCard({ product }) {
+  if (!product) {
+    return null;
+  }
+
+  const {
+    productId,
+    images = [],
+    name = "",
+    description = "",
+    price = 0,
+    labelledPrice = 0,
+    isAvailable = false,
+    stock = 0,
+  } = product;
+
+  const hasImages = Array.isArray(images) && images.length > 0;
+  const showDiscount = Number(labelledPrice) !== Number(price);
+
   return (
-    <Link to={"/overview/"+product.productId} className="w-[300px] bg-white shadow-lg rounded-xl m-2 overflow-hidden border hover:scale-[1.02] transition-all cursor-pointer">
-      {/* image */}
-      <div className="w-full h-[180px] bg-gray-200 flex items-center justify-center overflow-hidden">
-        {product.images && product.images.length > 0 ? (
+    <Link to={"/overview/" + productId} className="w-[300px] h-[450px] bg-white shadow-lg rounded-lg m-4 overflow-hidden flex flex-col border border-gray-200 hover:shadow-xl transition-shadow duration-300">
+      {/* Image */}
+      <div className="h-[200px] w-full bg-gray-100 flex items-center justify-center">
+        {hasImages ? (
           <img
-            src={product.images[0]}
-            alt={product.name}
-            className="w-full h-full object-cover"
+            src={images[0]}
+            alt={name}
+            className="h-full w-full object-cover"
           />
         ) : (
-          <span className="text-gray-500 text-sm">No Image</span>
+          <span className="text-gray-400">No Image</span>
         )}
       </div>
 
-      {/* content */}
-      <div className="p-4 flex flex-col h-[180px]">
-        <h2 className="text-lg font-semibold line-clamp-1">{product.name}</h2>
-
-        {product.altNames && product.altNames.length > 0 && (
-          <p className="text-xs text-gray-500 mt-[2px] line-clamp-1">
-            ({product.altNames.join(", ")})
+      {/* Product Info */}
+      <div className="flex-1 p-4 flex flex-col justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">{name}</h2>
+          <p className="text-sm text-gray-500 mt-1 h-[48px] overflow-hidden">
+            {description}
           </p>
-        )}
+        </div>
 
-        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-          {product.description}
-        </p>
-
-        <div className="flex justify-between items-end mt-auto pt-3">
-          <div>
-            <p className="text-sm text-gray-400 line-through">
-              Rs {product.labelPrice}
-            </p>
-            <p className="text-xl font-bold text-green-600">
-              Rs {product.price}
-            </p>
-          </div>
-
-          {product.isAvailable ? (
-            <span className="text-sm text-green-500 font-medium">
-              In Stock
-            </span>
+        {/* Pricing */}
+        <div className="mt-3">
+          {showDiscount ? (
+            <div className="flex items-center gap-2">
+              <p className="text-red-500 font-bold text-lg">
+                Rs. {formatPrice(price)}
+              </p>
+              <p className="text-gray-400 line-through text-sm">
+                Rs. {formatPrice(labelledPrice)}
+              </p>
+            </div>
           ) : (
-            <span className="text-sm text-red-500 font-medium">
-              Out of Stock
-            </span>
+            <p className="text-gray-700 font-semibold text-lg">
+              Rs. {formatPrice(price)}
+            </p>
           )}
+        </div>
+
+        {/* Stock & Button */}
+        <div className="mt-4 flex items-center justify-between">
+          <span
+            className={`text-sm font-medium ${
+              isAvailable && stock > 0 ? "text-green-600" : "text-red-500"
+            }`}
+          >
+            {isAvailable && stock > 0 ? "In Stock" : "Out of Stock"}
+          </span>
+
+          <button
+            disabled={!isAvailable || stock <= 0}
+            className="px-3 py-1 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 transition"
+          >
+            {isAvailable && stock > 0 ? "Buy Now" : "Unavailable"}
+          </button>
         </div>
       </div>
     </Link>

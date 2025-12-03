@@ -4,7 +4,8 @@ import { Link, useLocation } from "react-router-dom";
 
 export default function CheckoutPage() {
     const location = useLocation();
-    const [cart, setCart] = useState(location.state?.cart || []);
+    const initialCart = Array.isArray(location.state?.cart) ? location.state.cart : [];
+    const [cart, setCart] = useState(initialCart);
 
     function getTotal() {
         let total = 0;
