@@ -1,132 +1,200 @@
+import axios from "axios";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { BiMinus, BiPlus, BiTrash } from "react-icons/bi";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 export default function CheckoutPage() {
-    const location = useLocation();
-    const initialCart = Array.isArray(location.state?.cart) ? location.state.cart : [];
-    const [cart, setCart] = useState(initialCart);
+  const location = useLocation();
+  const [cart, setCart] = useState(location.state?.cart || []);
+  const [email, setEmail] = useState(localStorage.getItem("userEmail") || "");
+  const [name, setName] = useState(localStorage.getItem("userName") || "");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
 
-    function getTotal() {
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.qty;
-        });
-        return total;
+  function getTotals() {
+    let total = 0;
+    let labelledTotal = 0;
+    cart.forEach((item) => {
+      const qty = Number(item.qty ?? 1);
+      const price = Number(item.price ?? 0);
+      const labelPrice = Number(item.labelPrice ?? item.labelledPrice ?? item.price ?? 0);
+      total += price * qty;
+      labelledTotal += labelPrice * qty;
+    });
+    return { total, labelledTotal };
+  }
+
+  function removeFromCart(index) {
+    setCart((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function changeQty(index, qtyDiff) {
+    const newQty = Number(cart[index].qty ?? 1) + qtyDiff;
+    if (newQty <= 0) {
+      removeFromCart(index);
+      return;
+    }
+    const newCart = [...cart];
+    newCart[index] = { ...newCart[index], qty: newQty };
+    setCart(newCart);
+  }
+
+  // Backend expects: [{ productId, quantity }]
+  function buildProductsPayload() {
+    return cart.map((item) => ({
+      productId: String(item.productId ?? item.id ?? item._id ?? ""),
+      quantity: Number(item.qty ?? 1),
+    }));
+  }
+
+  async function placeOrder() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to place order");
+      return;
+    }
+    if (!email || !name || !phoneNumber || !address) {
+      toast.error("Please fill email, name, phone, and address");
+      return;
+    }
+    if (!cart.length) {
+      toast.error("Cart is empty");
+      return;
     }
 
-    function removeFromCart(index) {
-        const newCart = cart.filter((item, i) => i !== index);
-        setCart(newCart);
+    const { total, labelledTotal } = getTotals();
+
+    const orderInformation = {
+      email,
+      name,
+      phone: phoneNumber,
+      address,
+      labelledTotal,
+      total,
+      products: buildProductsPayload(),
+    };
+
+    try {
+      const backend = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
+      const res = await axios.post(`${backend}/api/orders`, orderInformation, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success("Order placed successfully");
+      console.log(res.data);
+    } catch (err) {
+      console.error("Order error:", err.response?.data || err.message);
+      toast.error(err.response?.data?.message || "Error placing order");
     }
+  }
 
-    function changeQty(index, qty) {
-        const newCart = [...cart];
-        const newQty = newCart[index].qty + qty;
-
-        if (newQty <= 0) {
-            removeFromCart(index);
-            return;
-        }
-
-        newCart[index].qty = newQty;
-        setCart(newCart);
-    }
-
-    return (
-        <div className="w-full max-w-full h-full flex flex-col items-center pt-4 relative">
-            <div className="z-50 hidden w-[400px] h-[80px] shadow-2xl absolute bottom-1 md:top-1 right-1 md:flex flex-col justify-center items-center">
-                <p className="text-2xl text-secondary font-bold">
-                    Total:
-                    <span className="text-accent font-bold mx-2">
-                        {getTotal().toFixed(2)}
-                    </span>
-                </p>
-
-                <button className="text-white bg-accent px-4 py-2 rounded-lg font-bold hover:bg-secondary transition-all duration-300">
-                    Place Order
-                </button>
-            </div>
-
-            {cart.map((item, index) => (
-                <div
-                    key={item.productId}
-                    className="w-[70%] md:w-[600px] my-4 md:h-[100px] rounded-tl-3xl rounded-bl-3xl bg-primary shadow-2xl flex flex-col md:flex-row relative justify-center items-center p-2 md:pt-0"
-                >
-                    <img src={item.image} className="w-[100px] h-[100px] object-cover rounded-3xl" />
-
-                    <div className="w-[250px] h-full flex flex-col justify-center items-center md:items-start pl-4">
-                        <h1 className="text-xl text-secondary font-semibold">{item.name}</h1>
-                        <h1 className="text-md text-gray-600 font-semibold">{item.productId}</h1>
-
-                        {item.labelledPrice > item.price ? (
-                            <div>
-                                <span className="text-md mx-1 text-gray-500 line-through">
-                                    {item.labelledPrice.toFixed(2)}
-                                </span>
-                                <span className="text-md mx-1 font-bold text-accent">
-                                    {item.price.toFixed(2)}
-                                </span>
-                            </div>
-                        ) : (
-                            <span className="text-md mx-1 font-bold text-accent">
-                                {item.price.toFixed(2)}
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="max-w-[100px] w-[100px] h-full flex flex-row justify-evenly items-center">
-                        <button
-                            className="text-white font-bold rounded-xl hover:bg-secondary p-2 text-xl cursor-pointer aspect-square bg-accent"
-                            onClick={() => changeQty(index, -1)}
-                        >
-                            <BiMinus />
-                        </button>
-
-                        <h1 className="text-xl text-secondary font-semibold h-full flex items-center mx-2.5">
-                            {item.qty}
-                        </h1>
-
-                        <button
-                            className="text-white font-bold rounded-xl hover:bg-secondary p-2 text-xl cursor-pointer aspect-square bg-accent"
-                            onClick={() => changeQty(index, 1)}
-                        >
-                            <BiPlus />
-                        </button>
-                    </div>
-
-                    {/* Item Total */}
-                    <div className="w-[200px] h-full flex flex-col justify-center items-center md:items-end pr-4">
-                        <h1 className="text-2xl text-secondary font-semibold">
-                            Rs. {(item.price * item.qty).toFixed(2)}
-                        </h1>
-                    </div>
-
-                    <button
-                        className="absolute text-red-600 cursor-pointer hover:bg-red-600 hover:text-white rounded-full p-2 right-[-35px]"
-                        onClick={() => removeFromCart(index)}
-                    >
-                        <BiTrash />
-                    </button>
-                </div>
-            ))}
-
-            <div className="z-50 md:hidden flex w-full h-[100px] shadow-2xl flex-col justify-center items-center">
-                <p className="text-2xl text-secondary font-bold">
-                    Total:
-                    <span className="text-accent font-bold mx-2">
-                        {getTotal().toFixed(2)}
-                    </span>
-                </p>
-
-                <Link
-                    to="/checkout"
-                    state={{ cart: cart }}
-                    className="text-white bg-accent px-4 py-2 rounded-lg font-bold hover:bg-secondary transition-all duration-300"
-                >
-                    Checkout
-                </Link>
-            </div>
+  return (
+    <div className="w-full h-full flex flex-col items-center pt-4 relative ">
+      <div className="w-[400px] shadow-2xl absolute top-1 right-1 flex flex-col justify-center items-center p-1 gap-4">
+        <p className="text-2xl text-secondary font-bold">
+          Total:
+          <span className="text-accent font-bold mx-2">
+            {getTotals().total.toFixed(2)}
+          </span>
+        </p>
+        <div className="w-full flex flex-col gap-2">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full h-[40px] px-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Name"
+            className="w-full h-[40px] px-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Phone Number"
+            className="w-full h-[40px] px-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Address"
+            className="w-full h-[40px] px-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
         </div>
-    );
+        <button
+          className="text-white bg-accent px-4 py-2 rounded-lg font-bold hover:bg-secondary transition-all duration-300"
+          onClick={placeOrder}
+        >
+          Place Order
+        </button>
+      </div>
+
+      {cart.map((item, index) => (
+        <div
+          key={item.productId ?? item.id ?? item._id ?? index}
+          className="w-[600px] my-4 h-[100px] rounded-tl-3xl rounded-bl-3xl bg-primary shadow-2xl flex flex-row relative justify-center items-center"
+        >
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-[100px] h-[100px] object-cover rounded-3xl"
+          />
+          <div className="w-[250px] h-full flex flex-col justify-center items-start pl-4">
+            <h1 className="text-xl text-secondary font-semibold">{item.name}</h1>
+            <h1 className="text-md text-gray-600 font-semibold">
+              {String(item.productId ?? item.id ?? item._id ?? "")}
+            </h1>
+            {Number(item.labelPrice ?? item.labelledPrice ?? 0) > Number(item.price ?? 0) ? (
+              <div>
+                <span className="text-md mx-1 text-gray-500 line-through">
+                  {Number(item.labelPrice ?? item.labelledPrice ?? 0).toFixed(2)}
+                </span>
+                <span className="text-md mx-1 font-bold text-accent">
+                  {Number(item.price ?? 0).toFixed(2)}
+                </span>
+              </div>
+            ) : (
+              <span className="text-md mx-1 font-bold text-accent">
+                {Number(item.price ?? 0).toFixed(2)}
+              </span>
+            )}
+          </div>
+          <div className="max-w-[100px] w-[100px] h-full flex flex-row justify-evenly items-center">
+            <button
+              className="text-white font-bold rounded-xl hover:bg-secondary p-2 text-xl cursor-pointer aspect-square bg-accent"
+              onClick={() => changeQty(index, -1)}
+            >
+              <BiMinus />
+            </button>
+            <h1 className="text-xl text-secondary font-semibold h-full flex items-center mx-2.5">
+              {Number(item.qty ?? 1)}
+            </h1>
+            <button
+              className="text-white font-bold rounded-xl hover:bg-secondary p-2 text-xl cursor-pointer aspect-square bg-accent"
+              onClick={() => changeQty(index, 1)}
+            >
+              <BiPlus />
+            </button>
+          </div>
+          <div className="w-[200px] h-full flex flex-col justify-center items-end pr-4">
+            <h1 className="text-2xl text-secondary font-semibold">
+              Rs. {(Number(item.price ?? 0) * Number(item.qty ?? 1)).toFixed(2)}
+            </h1>
+          </div>
+          <button
+            className="absolute text-red-600 cursor-pointer hover:bg-red-600 hover:text-white rounded-full p-2 right-[-35px]"
+            onClick={() => removeFromCart(index)}
+          >
+            <BiTrash />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 }
