@@ -55,6 +55,7 @@ export default function AdminProductsPage() {
     <div className="relative w-full h-full bg-primary p-6 overflow-y-auto">
 
       {/* Floating Add Button */}
+
       <Link
         to="/admin/add-product"
         className="fixed bottom-8 right-8 bg-accent hover:bg-accent/90 text-white text-3xl w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all"
@@ -121,7 +122,7 @@ export default function AdminProductsPage() {
                         }
                         className="text-blue-600 hover:text-blue-800 text-xl transition"
                       >
-                        <FaEdit />
+                        <FaEdit size={18}/>
                       </button>
                     </div>
                   </td>
