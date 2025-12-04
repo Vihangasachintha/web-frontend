@@ -9,6 +9,7 @@ export default function AdminOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
+  const [productIndex, setProductIndex] = useState({});
 
   useEffect(() => {
     if (isLoading) {
@@ -39,6 +40,23 @@ export default function AdminOrdersPage() {
   // Set appElement for accessibility (required by react-modal)
   useEffect(() => {
     Modal.setAppElement("#root");
+  }, []);
+
+  // Load all products once to enrich order lines with details
+  useEffect(() => {
+    axios
+      .get(import.meta.env.VITE_BACKEND_URL + "/api/products")
+      .then((res) => {
+        const idx = {};
+        (res.data || []).forEach((p) => {
+          const key = String(p.productId ?? p._id ?? "");
+          if (key) idx[key] = p;
+        });
+        setProductIndex(idx);
+      })
+      .catch(() => {
+        // keep index empty if products fetch fails
+      });
   }, []);
 
   // Status badge classes
@@ -204,7 +222,17 @@ export default function AdminOrdersPage() {
                   key={index}
                   className="border-b hover:bg-gray-100 transition-colors cursor-pointer"
                   onClick={() => {
-                    setActiveOrder(order);
+                    const enriched = {
+                      ...order,
+                      products: Array.isArray(order.products)
+                        ? order.products.map((line) => {
+                            const key = String(line.productId ?? line.id ?? line._id ?? "");
+                            const productInfo = key ? productIndex[key] : undefined;
+                            return { ...line, productInfo };
+                          })
+                        : [],
+                    };
+                    setActiveOrder(enriched);
                     setIsModalOpen(true);
                   }}
                 >
