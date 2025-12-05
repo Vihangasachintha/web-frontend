@@ -1,258 +1,270 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import Modal from "react-modal";
-import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 import Loading from "../../components/loading";
+import Modal from "react-modal";
+
+
+Modal.setAppElement("#root");
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
-  const [productIndex, setProductIndex] = useState({});
 
   useEffect(() => {
-    if (isLoading) {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("You must be logged in to view orders");
-        return;
-      }
+    const token = localStorage.getItem("token");
 
-      axios
-        .get(import.meta.env.VITE_BACKEND_URL + "/api/orders", {
-          headers: { Authorization: "Bearer " + token },
-        })
-        .then((res) => {
-          setOrders(res.data);
-          setIsLoading(false);
-        })
-        .catch((err) => {
-          console.error(
-            "Failed to load orders:",
-            err.response?.data?.message || err.message
-          );
-          setIsLoading(false);
-        });
+    if (!token) {
+      alert("Please login first.");
+      return;
     }
-  }, [isLoading]);
 
-  // Set appElement for accessibility (required by react-modal)
-  useEffect(() => {
-    Modal.setAppElement("#root");
-  }, []);
-
-  // Load all products once to enrich order lines with details
-  useEffect(() => {
     axios
-      .get(import.meta.env.VITE_BACKEND_URL + "/api/products")
-      .then((res) => {
-        const idx = {};
-        (res.data || []).forEach((p) => {
-          const key = String(p.productId ?? p._id ?? "");
-          if (key) idx[key] = p;
-        });
-        setProductIndex(idx);
+      .get(import.meta.env.VITE_BACKEND_URL + "/api/orders", {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
       })
-      .catch(() => {
-        // keep index empty if products fetch fails
+      .then((res) => {
+        setOrders(res.data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        alert("Error fetching orders: " + (err.response?.data?.message || "unknown error"));
+        setIsLoading(false);
       });
   }, []);
 
-  // Status badge classes
-  function getStatusClass(status) {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-200 text-yellow-800";
-      case "processing":
-        return "bg-blue-200 text-blue-800";
-      case "shipped":
-        return "bg-purple-200 text-purple-800";
-      case "completed":
-        return "bg-green-200 text-green-800";
-      case "cancelled":
-        return "bg-red-200 text-red-800";
-      default:
-        return "bg-gray-200 text-gray-800";
-    }
-  }
-
   return (
-    <div className="w-full h-full bg-primary p-6 overflow-y-auto">
-
-      {/* Page Title */}
-      <h1 className="text-3xl font-bold text-accent mb-6">Manage Orders</h1>
-
-      {/* Order Details Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        className="bg-white rounded-lg shadow-lg max-w-3xl mx-auto my-10 p-6 outline-none"
-        overlayClassName="fixed inset-0 bg-[#00000040] flex justify-center items-center"
-      >
-        {activeOrder && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[var(--color-accent)]">
-              Order Details - {activeOrder.orderId}
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p>
-                  <span className="font-semibold">Name:</span> {activeOrder.name}
-                </p>
-                <p>
-                  <span className="font-semibold">Email:</span> {activeOrder.email}
-                </p>
-                <p>
-                  <span className="font-semibold">Phone:</span> {activeOrder.phone}
-                </p>
-                <p>
-                  <span className="font-semibold">Address:</span> {activeOrder.address}
-                </p>
-              </div>
-              <div>
-                <p>
-                  <span className="font-semibold">Status:</span>
-                  <span
-                    className={`ml-2 font-bold ${
-                      activeOrder.status === "pending"
-                        ? "text-yellow-500"
-                        : activeOrder.status === "completed"
-                        ? "text-green-600"
-                        : "text-red-500"
-                    }`}
-                  >
-                    {String(activeOrder.status || "").toUpperCase()}
-                  </span>
-                </p>
-                <p>
-                  <span className="font-semibold">Date:</span> {new Date(activeOrder.date).toLocaleDateString("en-GB")}
-                </p>
-                <p>
-                  <span className="font-semibold">Total:</span> {(activeOrder.total || 0).toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                </p>
-                {typeof activeOrder.labelledTotal !== "undefined" && (
-                  <p>
-                    <span className="font-semibold">Labelled Total:</span> {activeOrder.labelledTotal.toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {Array.isArray(activeOrder.products) && (
-              <>
-                <h3 className="text-xl font-semibold mt-4">Products</h3>
-                <table className="w-full text-center border border-gray-200 shadow rounded">
-                  <thead className="bg-[var(--color-accent)] text-white">
-                    <tr>
-                      <th className="py-2 px-2">Image</th>
-                      <th className="py-2 px-2">Product</th>
-                      <th className="py-2 px-2">Price</th>
-                      <th className="py-2 px-2">Quantity</th>
-                      <th className="py-2 px-2">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeOrder.products.map((item, idx) => (
-                      <tr key={idx} className={`${idx % 2 === 0 ? "bg-[var(--color-primary)]" : "bg-gray-100"}`}>
-                        <td className="py-2 px-2">
-                          <img
-                            src={item.productInfo?.images?.[0]}
-                            alt={item.productInfo?.name}
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        </td>
-                        <td className="py-2 px-2">{item.productInfo?.name}</td>
-                        <td className="py-2 px-2">
-                          {(item.productInfo?.price || 0).toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                        </td>
-                        <td className="py-2 px-2">{item.quantity}</td>
-                        <td className="py-2 px-2">
-                          {((item.productInfo?.price || 0) * (item.quantity || 0)).toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </>
-            )}
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => window.print()}
-                className="mt-4 px-4 py-2 bg-[var(--color-accent)] text-white rounded hover:bg-[var(--color-secondary)] transition"
-              >
-                Print
-              </button>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="mt-4 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800 transition"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
+    <div className="w-full h-full overflow-y-scroll p-6">
       {isLoading ? (
         <Loading />
       ) : (
-        <div className="overflow-x-auto bg-white border border-accent shadow-md rounded-xl p-4">
+        <div className="overflow-x-auto">
+          {/* ORDER DETAILS MODAL */}
+          <Modal
+            isOpen={isModalOpen}
+            onRequestClose={() => setIsModalOpen(false)}
+            style={{
+              overlay: {
+                backgroundColor: "rgba(0,0,0,0.55)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "20px",
+                zIndex: 50,
+              },
+              content: {
+                position: "static",
+                padding: "0",
+                borderRadius: "18px",
+                maxWidth: "760px",
+                width: "100%",
+                border: "none",
+                inset: "unset",
+              },
+            }}
+          >
+            {activeOrder && (
+              <div className="p-8">
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-pink-600">
+                    Order #{activeOrder.orderId}
+                  </h2>
 
-          {/* Orders Table */}
-          <table className="w-full border-collapse">
-            <thead className="bg-accent text-white">
-              <tr>
-                <th className="py-3 px-4 text-left">Order ID</th>
-                <th className="py-3 px-4 text-left">Name</th>
-                <th className="py-3 px-4 text-left">Email</th>
-                <th className="py-3 px-4 text-left">Address</th>
-                <th className="py-3 px-4 text-left">Phone</th>
-                <th className="py-3 px-4 text-left">Total</th>
-                <th className="py-3 px-4 text-left">Date</th>
-                <th className="py-3 px-4 text-left">Status</th>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      activeOrder.status === "pending"
+                        ? "bg-yellow-200 text-yellow-800"
+                        : activeOrder.status === "completed"
+                        ? "bg-green-200 text-green-800"
+                        : "bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {activeOrder.status.toUpperCase()}
+                  </span>
+                  <select defaultValue="" onChange={async(e) => {
+                    const updatedValue = e.target.value
+                    try{
+                    const token = localStorage.getItem("token");
+                    await axios.put(
+                      import.meta.env.VITE_BACKEND_URL + 
+                      "/api/orders/" + 
+                      activeOrder.orderId + 
+                      "/" + 
+                      updatedValue ,
+                      {},
+                      {
+                        headers: { 
+                          Authorization: "Bearer " + token },
+                      }
+                    );
+
+                    setIsModalOpen(false);
+                    setIsLoading(true);
+
+                    const res = await axios.get(
+                      import.meta.env.VITE_BACKEND_URL + "/api/orders",
+                      {
+                        headers: {
+                          Authorization: "Bearer " + token,
+                        },
+                      }
+                      );
+                      setOrders(res.data);
+                      setIsLoading(false);
+                    
+                    }catch(e){
+                      toast.error("Failed to update order status")
+                      console.log(e)
+                    }
+                  }}>
+                    <option value="" disabled>Change Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="canceled">Canceled</option>
+                    <option value="shipped">Returned</option>
+
+                  </select>
+                  
+                </div>
+
+                {/* Customer Info */}
+                <div className="border p-4 rounded-lg mb-6">
+                  <h3 className="text-lg font-semibold mb-2">Customer Information</h3>
+                  <p><strong>Name:</strong> {activeOrder.name}</p>
+                  <p><strong>Email:</strong> {activeOrder.email}</p>
+                  <p><strong>Phone:</strong> {activeOrder.phone}</p>
+                  <p><strong>Address:</strong> {activeOrder.address}</p>
+                  <p>
+                    <strong>Date:</strong>{" "}
+                    {new Date(activeOrder.date).toLocaleString()}
+                  </p>
+                </div>
+
+                {/* Ordered Products */}
+                <h3 className="text-lg font-semibold mb-2">Ordered Products</h3>
+
+                {/* Scroll ONLY when many products */}
+                <div className="max-h-64 overflow-y-auto pr-1">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100 text-sm sticky top-0 z-10">
+                        <th className="text-left py-2">Product</th>
+                        <th className="py-2">Qty</th>
+                        <th className="py-2">Price</th>
+                        <th className="py-2">Total</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {activeOrder.products?.map((product) => (
+                        <tr key={product._id} className="border-b">
+                          <td className="py-3 flex items-center gap-3">
+                            <div className="w-14 h-14 border rounded-md overflow-hidden flex-shrink-0 bg-gray-50">
+                              <img
+                                src={product.productInfo?.images?.[0]}
+                                alt={product.productInfo?.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <span className="text-sm font-medium">
+                              {product.productInfo?.name}
+                            </span>
+                          </td>
+
+                          <td className="text-center">{product.quantity}</td>
+
+                          <td className="text-center text-green-600 font-semibold">
+                            ${product.productInfo?.price.toFixed(2)}
+                          </td>
+
+                          <td className="text-center font-semibold">
+                            ${(product.quantity * product.productInfo?.price).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <hr className="my-5" />
+
+                {/* Order Total */}
+                <div className="text-right text-xl font-bold text-pink-600 mb-5">
+                  Order Total: ${activeOrder.total.toFixed(2)}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 mt-6">
+                  <button
+                    className="flex-1 bg-gray-300 text-gray-800 py-3 rounded-lg text-lg font-semibold hover:bg-gray-400 transition"
+                    onClick={() => setIsModalOpen(false)}
+                  >
+                    Close
+                  </button>
+
+                  <button
+                    className="flex-1 bg-pink-500 text-white py-3 rounded-lg text-lg font-bold hover:bg-pink-600 transition"
+                    onClick={() => window.print()}
+                  >
+                    Print
+                  </button>
+                </div>
+
+              </div>
+            )}
+          </Modal>
+
+          {/* ORDERS TABLE */}
+          <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
+            <thead>
+              <tr className="bg-accent text-white">
+                <th className="px-4 py-3 text-left">Order ID</th>
+                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-4 py-3 text-left">Email</th>
+                <th className="px-4 py-3 text-left">Phone</th>
+                <th className="px-4 py-3 text-left">Address</th>
+                <th className="px-4 py-3 text-left">Total</th>
+                <th className="px-4 py-3 text-left">Date</th>
+                <th className="px-4 py-3 text-left">Status</th>
               </tr>
             </thead>
 
             <tbody>
               {orders.map((order, index) => (
                 <tr
-                  key={index}
-                  className="border-b hover:bg-gray-100 transition-colors cursor-pointer"
+                  key={order._id}
                   onClick={() => {
-                    const enriched = {
-                      ...order,
-                      products: Array.isArray(order.products)
-                        ? order.products.map((line) => {
-                            const key = String(line.productId ?? line.id ?? line._id ?? "");
-                            const productInfo = key ? productIndex[key] : undefined;
-                            return { ...line, productInfo };
-                          })
-                        : [],
-                    };
-                    setActiveOrder(enriched);
+                    setActiveOrder(order);
                     setIsModalOpen(true);
                   }}
+                  className={`cursor-pointer hover:bg-pink-50 ${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  }`}
                 >
-                  <td className="py-3 px-4">{order.orderId}</td>
-                  <td className="py-3 px-4">{order.name}</td>
-                  <td className="py-3 px-4">{order.email}</td>
-                  <td className="py-3 px-4">{order.address}</td>
-                  <td className="py-3 px-4">{order.phone}</td>
-                  <td className="py-3 px-4 font-semibold text-accent">
-                    {order.total?.toFixed(2)}
+                  <td className="px-4 py-3">{order.orderId}</td>
+                  <td className="px-4 py-3">{order.name}</td>
+                  <td className="px-4 py-3">{order.email}</td>
+                  <td className="px-4 py-3">{order.phone}</td>
+                  <td className="px-4 py-3">{order.address}</td>
+                  <td className="px-4 py-3 font-semibold text-green-600">
+                    ${order.total.toFixed(2)}
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="px-4 py-3">
                     {new Date(order.date).toLocaleDateString()}
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="px-4 py-3">
                     <span
-                      className={
-                        "px-3 py-1 rounded-full text-sm font-semibold capitalize " +
-                        getStatusClass(order.status)
-                      }
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        order.status === "pending"
+                          ? "bg-yellow-200 text-yellow-800"
+                          : order.status === "completed"
+                          ? "bg-green-200 text-green-800"
+                          : "bg-red-200 text-red-800"
+                      }`}
                     >
                       {order.status}
                     </span>
@@ -261,7 +273,6 @@ export default function AdminOrdersPage() {
               ))}
             </tbody>
           </table>
-
         </div>
       )}
     </div>
