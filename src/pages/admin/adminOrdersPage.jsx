@@ -219,11 +219,24 @@ export default function AdminOrdersPage() {
           </Modal>
 
           {/* ORDERS TABLE */}
-          <table className="w-full border-collapse shadow-lg rounded-lg overflow-hidden">
+          <table
+            className="w-full border-collapse shadow-lg rounded-lg overflow-hidden"
+            style={{ tableLayout: "fixed" }}
+          >
+            <colgroup>
+              <col style={{ width: "120px" }} /> {/* Order ID */}
+              <col style={{ width: "160px" }} /> {/* Name */}
+              <col style={{ width: "120px" }} /> {/* Email */}
+              <col style={{ width: "130px" }} /> {/* Phone */}
+              <col style={{ width: "220px" }} /> {/* Address */}
+              <col style={{ width: "120px" }} /> {/* Total */}
+              <col style={{ width: "140px" }} /> {/* Date */}
+              <col style={{ width: "140px" }} /> {/* Status */}
+            </colgroup>
             <thead>
               <tr className="bg-accent text-white">
                 <th className="px-4 py-3 text-left">Order ID</th>
-                <th className="px-4 py-3 text-left">Name</th>
+                <th className="px-2 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Email</th>
                 <th className="px-4 py-3 text-left">Phone</th>
                 <th className="px-4 py-3 text-left">Address</th>
@@ -246,10 +259,20 @@ export default function AdminOrdersPage() {
                   }`}
                 >
                   <td className="px-4 py-3">{order.orderId}</td>
-                  <td className="px-4 py-3">{order.name}</td>
-                  <td className="px-4 py-3">{order.email}</td>
+                  <td className="px-2 py-3">{order.name}</td>
+                  <td
+                    className="px-4 py-3"
+                    style={{ whiteSpace: "normal", wordBreak: "break-word" }}
+                  >
+                    {order.email}
+                  </td>
                   <td className="px-4 py-3">{order.phone}</td>
-                  <td className="px-4 py-3">{order.address}</td>
+                  <td
+                    className="px-4 py-3"
+                    style={{ whiteSpace: "normal", wordBreak: "break-word" }}
+                  >
+                    {order.address}
+                  </td>
                   <td className="px-4 py-3 font-semibold text-green-600">
                     ${order.total.toFixed(2)}
                   </td>
