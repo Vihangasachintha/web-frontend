@@ -148,7 +148,7 @@ export default function AdminOrdersPage() {
                 <h3 className="text-lg font-semibold mb-2">Ordered Products</h3>
 
                 {/* Scroll ONLY when many products */}
-                <div className="max-h-64 overflow-y-auto pr-1">
+                <div className="max-h-44 overflow-y-auto pr-1">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-100 text-sm sticky top-0 z-10">
