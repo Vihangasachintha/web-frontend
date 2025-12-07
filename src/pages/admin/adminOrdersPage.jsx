@@ -193,12 +193,12 @@ export default function AdminOrdersPage() {
                 <hr className="my-5" />
 
                 {/* Order Total */}
-                <div className="text-right text-xl font-bold text-pink-600 mb-5">
+                <div className="text-right text-xl font-bold text-pink-600 mb-3">
                   Order Total: ${activeOrder.total.toFixed(2)}
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 mt-6">
+                <div className="flex gap-6 mt-2">
                   <button
                     className="flex-1 bg-gray-300 text-gray-800 py-3 rounded-lg text-lg font-semibold hover:bg-gray-400 transition"
                     onClick={() => setIsModalOpen(false)}
