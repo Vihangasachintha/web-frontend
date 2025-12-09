@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import Loading from "../../components/loading";
 import Modal from "react-modal";
-
+import toast from "react-hot-toast";
 
 Modal.setAppElement("#root");
 
@@ -11,6 +11,7 @@ export default function AdminOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
+  const columnWidths = [120, 160, 120, 130, 220, 120, 140, 140];
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -76,10 +77,12 @@ export default function AdminOrdersPage() {
 
                   <span
                     className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      activeOrder.status === "pending"
+                      activeOrder.status === "Pending"
                         ? "bg-yellow-200 text-yellow-800"
-                        : activeOrder.status === "completed"
+                        : activeOrder.status === "Completed"
                         ? "bg-green-200 text-green-800"
+                        : activeOrder.status === "Returned"
+                          ? "bg-blue-200 text-blue-800"
                         : "bg-red-200 text-red-800"
                     }`}
                   >
@@ -122,10 +125,10 @@ export default function AdminOrdersPage() {
                     }
                   }}>
                     <option value="" disabled>Change Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="canceled">Canceled</option>
-                    <option value="shipped">Returned</option>
+                    <option className="bg-yellow-500" value="Pending">Pending</option>
+                    <option className="bg-green-500" value="Completed">Completed</option>
+                    <option className="bg-red-500" value="Canceled">Canceled</option>
+                    <option className="bg-blue-500" value="Returned">Returned</option>
 
                   </select>
                   
@@ -178,11 +181,11 @@ export default function AdminOrdersPage() {
                           <td className="text-center">{product.quantity}</td>
 
                           <td className="text-center text-green-600 font-semibold">
-                            ${product.productInfo?.price.toFixed(2)}
+                            Rs.{product.productInfo?.price.toFixed(2)}
                           </td>
 
                           <td className="text-center font-semibold">
-                            ${(product.quantity * product.productInfo?.price).toFixed(2)}
+                            Rs.{(product.quantity * product.productInfo?.price).toFixed(2)}
                           </td>
                         </tr>
                       ))}
@@ -224,14 +227,9 @@ export default function AdminOrdersPage() {
             style={{ tableLayout: "fixed" }}
           >
             <colgroup>
-              <col style={{ width: "120px" }} /> {/* Order ID */}
-              <col style={{ width: "160px" }} /> {/* Name */}
-              <col style={{ width: "120px" }} /> {/* Email */}
-              <col style={{ width: "130px" }} /> {/* Phone */}
-              <col style={{ width: "220px" }} /> {/* Address */}
-              <col style={{ width: "120px" }} /> {/* Total */}
-              <col style={{ width: "140px" }} /> {/* Date */}
-              <col style={{ width: "140px" }} /> {/* Status */}
+              {columnWidths.map((width, index) => (
+                <col key={index} style={{ width: `${width}px` }} />
+              ))}
             </colgroup>
             <thead>
               <tr className="bg-accent text-white">
@@ -274,7 +272,7 @@ export default function AdminOrdersPage() {
                     {order.address}
                   </td>
                   <td className="px-4 py-3 font-semibold text-green-600">
-                    ${order.total.toFixed(2)}
+                    Rs.{order.total.toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
                     {new Date(order.date).toLocaleDateString()}
@@ -282,10 +280,12 @@ export default function AdminOrdersPage() {
                   <td className="px-4 py-3">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        order.status === "pending"
+                        order.status === "Pending"
                           ? "bg-yellow-200 text-yellow-800"
-                          : order.status === "completed"
+                          : order.status === "Completed"
                           ? "bg-green-200 text-green-800"
+                          : order.status === "Returned"
+                          ? "bg-blue-200 text-blue-800"
                           : "bg-red-200 text-red-800"
                       }`}
                     >
