@@ -82,8 +82,8 @@ export default function ProductOverviewPage() {
                   {product.price.toFixed(2)}
                 </span>
               )}
-              <div className="w-full flex justify-center mt-4">
-                <button className="w-[200px] h-[50px] bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4" onClick={() => {
+              <div className="w-full flex flex-col md:flex-row items-center md:justify-center mt-4">
+                <button className="w-[90%] md:w-[200px] h-[50px] mb-3 md:mb-0 bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4" onClick={() => {
                   console.log("Old cart");
                   console.log(getCart());
                   addToCart(product, 1);
@@ -94,7 +94,7 @@ export default function ProductOverviewPage() {
                   Add to Cart
                 </button>
                 <button
-                  className="w-[200px] h-[50px] bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4"
+                  className="w-[90%] md:w-[200px] h-[50px] bg-accent text-white rounded-2xl hover:bg-accent/80 transition-all duration-300 mx-4"
                   onClick={() => {
                     const item = {
                       productId: product.productId,

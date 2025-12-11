@@ -41,7 +41,7 @@ export default function Header() {
         </Link>
       </div>
       {sideDrawerOpen && (
-        <div className="fixed h-screen w-full bg-[#00000060] flex">
+        <div className="fixed h-screen w-full bg-[#00000060] flex z-10">
           <div className="w-[300px] h-full bg-white">
             <div className="w-full h-[80px] shadow-2xl flex justify-center items-center relative">
               <GiHamburgerMenu
