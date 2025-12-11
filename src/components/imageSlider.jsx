@@ -5,9 +5,9 @@ export default function ImagesSlider(props) {
 const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
-    <div className="w-[500px] h-[600px] bg-red-900">
-      <img className="w-full h-[500px] object-cover" src={images[currentIndex]} alt="" />
-      <div className="w-full h-[100px] bg-blue-900 flex justify-center items-center">
+    <div className="w-[500px] h-[600px]">
+      <img className="w-full h-[500px] object-cover rounded-2xl" src={images[currentIndex]} alt="" />
+      <div className="w-full h-[100px] flex justify-center items-center">
         {images?.map((image, index) => {
           return (
             <img
