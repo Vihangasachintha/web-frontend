@@ -3,6 +3,7 @@ import "./App.css";
 import LoginPage from "./pages/login.jsx";
 import RegisterPage from "./pages/register.jsx";
 import HomePage from "./pages/home.jsx";
+import ForgetPasswordPage from "./pages/forgetPassword.jsx";
 // import Header from "./components/header.jsx";
 import AdminPage from "./pages/adminPAge.jsx";
 import TestPage from "./pages/testPage.jsx";
@@ -16,6 +17,7 @@ function App() {
         {/* <Header/> */}
         <Routes path="/*">
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forget" element={<ForgetPasswordPage />} />
           <Route path="/signup" element={<RegisterPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
           <Route path="/*" element={<HomePage />} />
