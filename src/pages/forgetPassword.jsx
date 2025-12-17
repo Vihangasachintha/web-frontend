@@ -42,8 +42,8 @@ export default function ForgetPasswordPage(){
             {
                 otpSent?
                 <div className="w-[400px] h-[500px] bg-white shadow-2xl rounded-xl flex flex-col justify-center items-center p-4">
-                   <input type="text" placeholder="Enter your OTP" className="w-full h-[50px] px-4 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" value={otp} onChange={(e)=>setOtp(e.target.value)}/>
-                    <input type="password" placeholder="Enter new password" className="w-full h-[50px] px-4 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)}/>
+                   <input type="text" placeholder="Enter your OTP" className="w-full h-[50px] px-4 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" value={otp} onChange={(e)=>setOtp(e.target.value)} autoComplete="off"/>
+                    <input type="password" placeholder="Enter new password" className="w-full h-[50px] px-4 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" value={newPassword} onChange={(e)=>setNewPassword(e.target.value)} autoComplete="new-password"/>
                     <input type="password" placeholder="Confirm new password" className="w-full h-[50px] px-4 mb-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent" value={confirmPassword} onChange={(e)=>setConfirmPassword(e.target.value)}/>
                     <button className="w-full h-[50px] bg-accent text-white rounded-lg mb-4 hover:bg-secondary transition-all duration-300" onClick={verifyOtp}>Verify OTP</button>
                     {/* resend otp button that sets sentOtp false */}
