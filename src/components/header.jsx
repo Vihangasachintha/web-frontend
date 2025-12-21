@@ -34,6 +34,9 @@ export default function Header() {
         <Link to="/contact" className="text-[20px] font-bold mx-2">
           Contact
         </Link>
+        <Link to="/search" className="text-[20px] font-bold mx-2">
+          Search
+        </Link>
       </div>
       <div className="w-[80px] hidden md:flex justify-center items-center">
         <Link to="/cart" className="text-[20px] font-bold mx-2">

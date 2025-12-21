@@ -4,6 +4,7 @@ import ProductPage from "./client/productPage";
 import { Routes, Route } from "react-router-dom";
 import CartPage from "./client/cart";
 import CheckoutPage from "./client/checkOut";
+import SearchProductPage from "./client/searchProduct";
 
 export default function HomePage() {
   return (
@@ -17,6 +18,7 @@ export default function HomePage() {
           <Route path="/contact" element={<h1>Contact</h1>} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/search" element={<SearchProductPage />} />
           <Route path="/overview/:id" element={<ProductOverviewPage/> }/>
           <Route path="/*" element={<h1>404 Not Found</h1>} />
         </Routes>
