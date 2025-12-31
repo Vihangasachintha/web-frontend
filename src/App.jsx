@@ -5,7 +5,7 @@ import RegisterPage from "./pages/register.jsx";
 import HomePage from "./pages/home.jsx";
 import ForgetPasswordPage from "./pages/forgetPassword.jsx";
 // import Header from "./components/header.jsx";
-import AdminPage from "./pages/adminPAge.jsx";
+import AdminPage from "./pages/adminPage.jsx";
 import TestPage from "./pages/testPage.jsx";
 import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
